@@ -1,0 +1,190 @@
+﻿<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Ahead Of Time Compilation</title>
+
+		<meta name="author" content="Tadeusz Makuch">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Ahead Of Time Compilation</h1>
+				</section>
+
+                <section class="stack">
+                    <section>
+                        <h2>Problem to solve</h2>
+                        <div style="background:white;
+                                    color: black;
+                                    width: 500px;
+                                    height: 300px;
+                                    margin: 0 auto;
+                                    text-align: left;
+                                    font-family:initial;
+                                    padding: 5px;
+                                    font-size: 24px;">Loading...</div>
+                    </section>
+                    <section>
+                        <h2>Problem to solve</h2>
+                        <p>We need to get to the root - why application needs time to load inside the browser</p>
+                        <img class="fragment" src="resources/compiling.png"/>
+                    </section>
+                    <section>
+                        <h2>Just In Time Compilation</h2>
+                        <img src="resources/jit.png"/>
+                    </section>
+                    <section>
+                        <h2>Ahead Of Time Compilation</h2>
+                        <img src="resources/aot.png"/>
+                    </section>
+                    <section>
+                        <h2>How does it work</h2>
+                        <ul>
+                            <li>Code is statically analysed and it generates already compiled templates for the components.</li>
+                            <li>Our package is smaller since it does not require the compiler and all it dependecies.</li>
+                            <li>This give us smaller loading time and generating code to keep at it's minimum.</li> 
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Caught in the act</h2>
+                        <pre><code><h1>Hello World!</h1></code></pre>
+                        <pre><code>...
+const parentRenderNode:any = this.renderer.createViewRoot(this.parentElement);
+this._el_0 = import3.createRenderElement(this.renderer,parentRenderNode,'h1',import3.EMPTY_INLINE_ARRAY,(null as any));
+this._text_1 = this.renderer.createText(this._el_0,'Hello World!',(null as any));
+this._text_2 = this.renderer.createText(parentRenderNode,'\n',(null as any));
+...</code></pre>
+                    </section>
+                </section>
+                <section class="stack">
+                    <section>
+                        <h2>Costs</h2>
+                        <ul>
+                            <li>Code needs to be statically analysable.</li>
+                            <li>Compiled templates needs to adhere to typescript rules.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Statically analysable code should</h2>
+                        <h3>export all elements that it uses at generation</h3>
+                        <pre><code>export NAVIGATION_ROUTES.map((route: RobinRoute): Route => ...
+                            
+abstract class ActionBase { ...
+export class Action extends ActionBase { ...</code></pre>
+                        <p>becomes</p>
+                        <pre><code>export function routeMapper(route: RobinRoute): Route {...
+export NAVIGATION_ROUTES.map(routeMapper);
+
+export abstract class ActionBase { ...
+export class Action extends ActionBase { ...</code></pre>
+                    </section>
+                    <section>
+                        <h2>Statically analysable code should</h2>
+                        <h3>not use default exports</h3>
+                        <pre><code>export default (something:any):any => ...</code></pre>
+                        <p>becomes</p>
+                        <pre><code>export function someFunction(something:any):any { ...</code></pre>
+                    </section>
+                    <section>
+                        <h2>Statically analysable code should</h2>
+                        <h3>use explicit importing</h3>
+                        <pre><code>import * from 'somewhere';</code></pre>
+                        <p>becomes</p>
+                        <pre><code>import { Something } from 'somewhere';</code></pre>
+                    </section>
+                    <section>
+                        <h2>Statically analysable code</h2>
+                        <p>There are no strict guidelines for making your code statically analysable.</p>
+                        <p>Only the main idea behind the process:</p>
+                        <h4>Allow external code to access and use whats necessery</h4>
+                    </section>
+                    <section>
+                        <h2>Templates adhering typescript rules - examples</h2>
+                        <ul>
+                            <li>Only public properties should be used in the template.</li>
+                            <li>Respecting types.</li>
+                            <li>Matching call signature to function.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Templates adhering typescript rules</h2>
+                        <p>Templetes were not checked with typescript rules before, since they were dynamically analysed in the browser by javascript.</p>
+                        <p>The golden rule: Now they also adhere to everything that separates Typescript from Javascript</p> 
+                    </section>
+                </section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				width: 1366,
+				height: 768,
+
+				theme: 'custom', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
