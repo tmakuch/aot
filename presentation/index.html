@@ -93,7 +93,62 @@ this._text_2 = this.renderer.createText(parentRenderNode,'\n',(null as any));
                 </section>
                 <section class="stack">
                     <section>
-                        <h2>Costs</h2>
+                        <h2>Required changes</h2>
+                        <ul>
+                            <li>Add extra configuration to tsconfig.json.</li>
+                            <li>Change the aplication bootstraping process.</li>
+                            <li>Move compilation into build process.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>tsconfig.json extra configuration</h2>
+                        <pre><code>"angularCompilerOptions": {
+    "genDir": ".",
+    "entryModule": "src/app/modules/app.module#AppModule"
+}</code></pre>
+                    </section>
+                    <section>
+                        <h2>Changes to application bootstraping</h2>
+                        <pre><code>import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { AppModule } from './modules/app.module';
+
+platformBrowserDynamic().bootstrapModule(AppModule);</code></pre>
+                        <p>becomes</p>
+                        <pre><code>import { platformBrowser } from '@angular/platform-browser';
+import { AppModuleNgFactory } from './modules/app.module.ngfactory';
+
+platformBrowser().bootstrapModuleFactory(AppModuleNgFactory);</code></pre>
+                    </section>
+                    <section>
+                        <h2>Compilation using angulars compiler</h2>
+                        <pre><code>"build": "npm run cleanup && webpack --config webpack.config.js -p"</code></pre>
+                        <p>inside package.json scripts becomes</p>
+                        <pre><code>"ngc": "ngc",
+"build": "npm run cleanup && npm run ngc && webpack --config webpack.config.js -p"</code></pre>
+                    </section>
+                    <section>
+                        <h2>Compilation using webpacks loader</h2>
+                        <pre><code>{ test: /\.ts/, use: ['ng-router-loader', 'ts-loader', 'angular2-template-loader']}</code></pre>
+                        <p>inside webpack module rules configuration becomes</p>
+                        <pre><code>{ test: /\.ts/, use: ['@ngtools/webpack'] }</code></pre>
+                        <p>and new plugin needs to be defined:</p>
+                        <pre><code>new ngToolsWebpack.AotPlugin({
+    tsConfigPath: './tsconfig.json',
+    entryModule: path.join(__dirname, '../src/app/app.module#AppModule')
+});</code></pre>
+                    </section>
+                    <section>
+                        <h2>Some numbers - JIT Compilation</h2>
+                        <img src="resources/jit_numbers.png"/>
+                    </section>
+                    <section>
+                        <h2>Some numbers - AOT Compilation</h2>
+                        <img src="resources/aot_numbers.png"/>
+                    </section>
+                </section>
+                <section class="stack">
+                    <section>
+                        <h2>Prerequisites</h2>
                         <ul>
                             <li>Code needs to be statically analysable.</li>
                             <li>Compiled templates needs to adhere to typescript rules.</li>
