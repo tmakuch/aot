@@ -1,0 +1,1 @@
+git clone https://github.com/blacksonic/angular2-aot-webpack code && cd code && npm install
